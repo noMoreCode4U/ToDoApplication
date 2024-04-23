@@ -1,4 +1,4 @@
-package com.electropeyk.to_doapplication.data.dao
+package com.electropeyk.to_doapplication.data
 
 import androidx.room.Dao
 import androidx.room.Delete
