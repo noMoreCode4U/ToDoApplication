@@ -1,4 +1,4 @@
-package com.electropeyk
+package com.electropeyk.to_doapplication
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
