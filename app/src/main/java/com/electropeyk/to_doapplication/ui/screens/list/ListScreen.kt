@@ -1,6 +1,7 @@
 package com.electropeyk.to_doapplication.ui.screens.list
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -8,12 +9,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.electropeyk.to_doapplication.R
 import com.electropeyk.to_doapplication.ui.theme.fabBackgroundColor
+import com.electropeyk.to_doapplication.ui.theme.scaffoldContainerColor
 import com.electropeyk.to_doapplication.ui.viewmodels.SharedViewModel
 import com.electropeyk.to_doapplication.util.SearchAppBarState
 
@@ -23,7 +26,11 @@ fun ListScreen(
     navigateToTaskScreen:(taskId:Int) -> Unit,
     sharedViewModel: SharedViewModel
 ) {
+    LaunchedEffect(key1 = true) {
+        sharedViewModel.getAllTasks()
+    }
 
+    val allTasks by sharedViewModel.allTasks.collectAsState()
     val searchAppBarState: SearchAppBarState by sharedViewModel.searchAppBarState
     val searchTextState: String by sharedViewModel.searchTextState
 
@@ -35,8 +42,12 @@ fun ListScreen(
             )
                  },
         content = {
-            ListContent()
+            ListContent(
+                tasks = allTasks,
+                navigateToTaskScreen = navigateToTaskScreen
+            )
         },
+        containerColor = MaterialTheme.colorScheme.scaffoldContainerColor,
         floatingActionButton = {
             ListFab(onFabClicked = navigateToTaskScreen)
         }

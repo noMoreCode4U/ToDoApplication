@@ -28,6 +28,11 @@ val HighPriorityColor = Color(0xFFFF4646)
 val NonePriorityColor = Color(0xFFFFFFFF)
 
 
+
+val ColorScheme.scaffoldContainerColor:Color
+    @Composable
+    get() = if(isSystemInDarkTheme()) Color.DarkGray else Color.White
+
 val ColorScheme.fabBackgroundColor:Color
     @Composable
     get() = if(isSystemInDarkTheme()) Purple700 else Teal200
