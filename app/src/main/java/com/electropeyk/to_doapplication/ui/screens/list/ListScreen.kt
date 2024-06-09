@@ -1,20 +1,18 @@
 package com.electropeyk.to_doapplication.ui.screens.list
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +43,7 @@ fun ListScreen(
     val action by sharedViewModel.action
 
     val allTasks by sharedViewModel.allTasks.collectAsState()
+    val searchedTasks by sharedViewModel.searchedTasks.collectAsState()
     val searchAppBarState: SearchAppBarState by sharedViewModel.searchAppBarState
     val searchTextState: String by sharedViewModel.searchTextState
 
@@ -54,6 +53,9 @@ fun ListScreen(
     DisplaySnackBar(
         snackbarHostState = snackbarHostState,
         handleDataBaseActions = {sharedViewModel.handleDatabaseActions(action = action)},
+        onUndoClicked = {
+           sharedViewModel.action.value = it
+        } ,
         taskTitle = sharedViewModel.title.value,
         action = action
     )
@@ -72,7 +74,9 @@ fun ListScreen(
                 .padding(top = it.calculateTopPadding())
             ) {
             ListContent(
-                tasks = allTasks,
+                allTasks = allTasks,
+                searchedTasks = searchedTasks,
+                searchAppBarState = searchAppBarState,
                 navigateToTaskScreen = navigateToTaskScreen)}
                   },
         containerColor = MaterialTheme.colorScheme.scaffoldContainerColor,
@@ -105,6 +109,7 @@ fun ListFab(
 fun DisplaySnackBar(
     snackbarHostState:SnackbarHostState,
     handleDataBaseActions:() -> Unit,
+    onUndoClicked:(Action)->Unit,
     taskTitle:String,
     action: Action
 ){
@@ -114,10 +119,43 @@ fun DisplaySnackBar(
         if(action != Action.NO_ACTION){
             scope.launch {
                 val snackBarResult = snackbarHostState.showSnackbar(
-                    message = "${action.name}: $taskTitle",
-                    actionLabel = "OK")
+                    message = setMessage(action = action,taskTitle = taskTitle),
+                    actionLabel = setActionLabel(action = action)
+                )
+                undoDeletedTask(
+                    action = action,
+                    snackbarResult = snackBarResult,
+                    onUndoClicked = onUndoClicked
+                )
             }
         }
     }
 }
 
+private fun setMessage(action:Action, taskTitle: String):String{
+    return when(action){
+        Action.DELETE_ALL -> "All Tasks Removed."
+        else -> "${action.name}: $taskTitle"
+    }
+}
+
+private fun setActionLabel(action: Action):String{
+    return if(action.name == "DELETE"){
+        "UNDO"
+    }else{
+        "OK"
+    }
+}
+
+private fun undoDeletedTask(
+    action:Action,
+    snackbarResult:SnackbarResult,
+    onUndoClicked:(Action)->Unit
+){
+    if(snackbarResult == SnackbarResult.ActionPerformed
+        && action == Action.DELETE
+        ){
+        onUndoClicked(Action.UNDO)
+    }
+
+}

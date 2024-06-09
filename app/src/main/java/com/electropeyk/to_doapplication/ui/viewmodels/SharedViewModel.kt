@@ -3,7 +3,6 @@ package com.electropeyk.to_doapplication.ui.viewmodels
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.electropeyk.to_doapplication.data.models.Priority
@@ -31,6 +30,8 @@ class SharedViewModel @Inject constructor(
     val description: MutableState<String> = mutableStateOf("")
     val priority: MutableState<Priority> = mutableStateOf(Priority.NONE)
 
+    private val _searchedTasks = MutableStateFlow <RequestState<List<ToDoTask>>>(RequestState.Idle)
+    val searchedTasks:StateFlow<RequestState<List<ToDoTask>>>  = _searchedTasks
 
     private val _allTasks = MutableStateFlow <RequestState<List<ToDoTask>>>(RequestState.Idle)
     val allTasks:StateFlow<RequestState<List<ToDoTask>>>  = _allTasks
@@ -42,6 +43,21 @@ class SharedViewModel @Inject constructor(
         mutableStateOf("")
 
 
+    fun searchDataBase(searchQuery:String){
+        _searchedTasks.value = RequestState.Loading
+        try {
+            viewModelScope.launch {
+               repository.searchDatabase(searchQuery = "%$searchQuery%")
+                   .collect{searchedTasks ->
+                       _searchedTasks.value = RequestState.Success(searchedTasks)
+
+                   }
+            }
+        }catch (e: Exception){
+            _searchedTasks.value = RequestState.Error(e)
+        }
+        searchAppBarState.value = SearchAppBarState.TRIGGERED
+    }
     fun getAllTasks(){
         _allTasks.value = RequestState.Loading
         try {
@@ -75,6 +91,7 @@ class SharedViewModel @Inject constructor(
             )
             repository.addTask(toDoTask = toDoTask)
         }
+        searchAppBarState.value = SearchAppBarState.CLOSED
     }
 
     private fun updateTask(){
@@ -101,6 +118,13 @@ class SharedViewModel @Inject constructor(
         }
     }
 
+    private fun deleteAllTasks(){
+        viewModelScope.launch(Dispatchers.IO){
+            repository.deleteAllTasks()
+        }
+    }
+
+
     fun handleDatabaseActions(action: Action){
         when(action){
             Action.ADD->{
@@ -113,10 +137,10 @@ class SharedViewModel @Inject constructor(
                 deleteTask()
             }
             Action.DELETE_ALL->{
-
+                deleteAllTasks()
             }
             Action.UNDO->{
-
+                addTask()
             }
             else->{
 
