@@ -1,6 +1,7 @@
 package com.electropeyk.to_doapplication.navigation.destinations
 
-import android.util.Log
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,10 +23,20 @@ fun NavGraphBuilder.taskComposable(
         route = TASK_SCREEN,
         arguments = listOf(navArgument(TASK_ARGUMENT_KEY){
             type = NavType.IntType
-        })
+        }),
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = {-it},
+                animationSpec = tween(
+                    durationMillis = 300
+                )
+            )
+        }
     ){navBackStackEntry ->
         val taskId = navBackStackEntry.arguments!!.getInt(TASK_ARGUMENT_KEY)
-        sharedViewModel.getSelectedTask(taskId=taskId)
+        LaunchedEffect(key1 = taskId) {
+            sharedViewModel.getSelectedTask(taskId=taskId)
+        }
         val selectedTask by sharedViewModel.selectedTask.collectAsState()
         
         LaunchedEffect(key1 = selectedTask) {

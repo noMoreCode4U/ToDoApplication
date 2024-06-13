@@ -46,7 +46,6 @@ import com.electropeyk.to_doapplication.components.DisplayAlertDialog
 import com.electropeyk.to_doapplication.ui.viewmodels.SharedViewModel
 import com.electropeyk.to_doapplication.util.Action
 import com.electropeyk.to_doapplication.util.SearchAppBarState
-import com.electropeyk.to_doapplication.util.TrailingIconState
 
 @Composable
 fun ListAppBar(
@@ -60,7 +59,7 @@ fun ListAppBar(
                 onSearchClicked = {
                     sharedViewModel.searchAppBarState.value = SearchAppBarState.OPENED
                 },
-                onSortClicked = {},
+                onSortClicked = {sharedViewModel.persistSortState(it)},
                 onDeleteAllConfirmed = {
                     sharedViewModel.action.value = Action.DELETE_ALL
                 }
@@ -232,10 +231,6 @@ fun SearchAppBar(
     onCloseClicked: () -> Unit,
     onSearchClicked: (String) -> Unit
 ){
-    var trailingIconState by remember {
-        mutableStateOf(TrailingIconState.READY_TO_DELETE)
-    }
-
 
     Surface(modifier = Modifier
         .fillMaxWidth()
@@ -275,19 +270,10 @@ fun SearchAppBar(
             },
             trailingIcon = {
                 IconButton(onClick = {
-                    when(trailingIconState){
-                        TrailingIconState.READY_TO_DELETE -> {
-                            onTextChange("")
-                            trailingIconState = TrailingIconState.READY_TO_CLOSE
-                        }
-                        TrailingIconState.READY_TO_CLOSE -> {
-                            if(text.isNotEmpty()){
-                                onTextChange("")
-                            }else{
-                                onCloseClicked()
-                                trailingIconState = TrailingIconState.READY_TO_DELETE
-                            }
-                        }
+                    if(text.isNotEmpty()) {
+                        onTextChange("")
+                    }else{
+                        onCloseClicked()
                     }
                 }
                 ) {

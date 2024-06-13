@@ -3,6 +3,7 @@ package com.electropeyk.to_doapplication.ui.screens.task
 import android.content.Context
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,10 @@ fun TaskScreen(
     val priority:Priority by sharedViewModel.priority
 
     val context = LocalContext.current
+
+    BackHandler {
+        navigationToListScreen(Action.NO_ACTION)
+    }
 
     Scaffold(
         topBar = {
